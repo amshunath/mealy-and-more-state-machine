@@ -44,30 +44,75 @@ always @(state) begin
 end
 endmodule
 
+//////////////////////////////////////////////////////////////////////
 module state_machine_mealy_tb();
+
 reg clk, reset, in;
 wire out;
 integer i;
 
-state_machine_mealy dut(clk, reset, in, out);
-initial 
-forever #5 clk = ~clk;
+state_machine_mealy dut (
+    .clk(clk),
+    .reset(reset),
+    .in(in),
+    .out(out)
+);
 
+// Generate clock with a period of 10 time units
 initial begin
-reset = 1'b1;
-clk = 1'b0;
-in = 0 ;
-#6;
-reset = 1'b0;
+    clk = 0;
+    forever #5 clk = ~clk;
+end
 
-for (i = 0; i<10 ; i = i+1)
-begin 
-	@(negedge clk); #1;
-in = $random;
-if (out == 1'b1)
-$display("PASS: Sequence 11 detected i = %d\n", i);
+// Initial block to apply test vectors
+initial begin
+    // Initial reset
+    reset = 1;
+    in = 0;
+    #10;
+    reset = 0;
+
+    // Apply a sequence of inputs to test the state machine
+    // Test case 1: No sequence detected
+    in = 0; #10;
+    in = 0; #10;
+    in = 1; #10;
+    in = 0; #10;
+    in = 1; #10;
+    in = 0; #10;
+
+    // Test case 2: Sequence detected at the beginning
+    in = 1; #10;
+    in = 1; #10;
+    in = 0; #10;
+    in = 0; #10;
+
+    // Test case 3: Sequence detected in the middle
+    in = 1; #10;
+    in = 0; #10;
+    in = 1; #10;
+    in = 1; #10;
+    in = 0; #10;
+
+    // Test case 4: Continuous sequence detection
+    in = 1; #10;
+    in = 1; #10;
+    in = 1; #10;
+    in = 0; #10;
+
+    // Test case 5: Random sequence
+    for (i = 0; i < 10; i = i + 1) begin
+        in = $random % 2;
+        #10;
+    end
+
+    // End the simulation
+    $finish;
 end
-#50;
-$finish;
+
+// Monitor changes
+initial begin
+    $monitor("Time: %0d, clk: %b, reset: %b, in: %b, out: %b", $time, clk, reset, in, out);
 end
+
 endmodule
