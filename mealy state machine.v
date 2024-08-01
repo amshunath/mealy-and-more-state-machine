@@ -1,7 +1,7 @@
 module state_machine_mealy(clk, reset, in, out);
-parameter zero=0, one1=1, two1s=2;
+parameter zero=0, one1=1;
 output out; input clk, reset, in;
-reg out; reg [1:0] state, next_state;
+reg out; reg  state, next_state;
 // Implement the state register
 always @(posedge clk or posedge reset) begin
  if (reset)
@@ -16,32 +16,23 @@ always @(state or in) begin
  next_state=one1;
  else
  next_state=zero;
+  out=0;
  end
  one1: begin //we've seen one 1 out = 0;
- if (in)
- next_state=two1s;
- else
+  if (in)begin
+ next_state=one1;
+  out=1;
+  end
+   else
  next_state=zero;
- end
- two1s: begin //we've seen at least 2 ones out = 1;
- if (in) 
- next_state=two1s;
- else
- next_state=zero;
+  out=0;
  end
  default: //in case we reach a bad state out = 0;
  next_state=zero;
  endcase
 end
 // output logic
-always @(state) begin
- case (state)
- zero: out <= 0;
- one1: out <= 0;
- two1s: out <= 1;
- default : out <= 0;
- endcase
-end
+
 endmodule
 
 //////////////////////////////////////////////////////////////////////
